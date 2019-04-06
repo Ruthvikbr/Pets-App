@@ -22,6 +22,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,7 +31,12 @@ import android.widget.TextView;
 import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetsContract;
 
+import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_BREED;
+import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_GENDER;
+import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_NAME;
+import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_WEIGHT;
 import static com.example.android.pets.data.PetsContract.PetEntry.TABLE_NAME;
+import static com.example.android.pets.data.PetsContract.PetEntry._ID;
 
 
 public class CatalogActivity extends AppCompatActivity {
@@ -53,6 +59,13 @@ public class CatalogActivity extends AppCompatActivity {
         mDbHelper = new PetDbHelper(this);
         displayDatabaseInfo();
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        displayDatabaseInfo();
+    }
+
     private void displayDatabaseInfo() {
         // To access our database, we instantiate our subclass of SQLiteOpenHelper
         // and pass the context, which is the current activity.
@@ -60,18 +73,47 @@ public class CatalogActivity extends AppCompatActivity {
 
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
+        String[] project = {_ID,COLUMN_PET_NAME,COLUMN_PET_BREED,COLUMN_PET_GENDER,COLUMN_PET_WEIGHT
+        };
+        Cursor cursor = db.query(TABLE_NAME,
+                project,
+                null,
+                null,
+                null,
+                null,null);
+        TextView displayView = (TextView) findViewById(R.id.text_view_pet);
 
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
         try {
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
-            TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+
+            displayView.setText("The pets table contains " + cursor.getCount() + " pets.\n\n");
+            displayView.append(PetsContract.PetEntry._ID + " - " +
+                    PetsContract.PetEntry.COLUMN_PET_NAME + " - " +
+                    PetsContract.PetEntry.COLUMN_PET_BREED + " - " +
+                    PetsContract.PetEntry.COLUMN_PET_GENDER + " - " +
+                    PetsContract.PetEntry.COLUMN_PET_WEIGHT + "\n");
+
+            int idColumnIndex = cursor.getColumnIndex(PetsContract.PetEntry._ID);
+            int nameColumnIndex = cursor.getColumnIndex(PetsContract.PetEntry.COLUMN_PET_NAME);
+            int weightCoulmnIndex = cursor.getColumnIndex(COLUMN_PET_WEIGHT);
+            int breedCoulmnIndex = cursor.getColumnIndex(COLUMN_PET_BREED);
+            int genderColumnIndex = cursor.getColumnIndex(COLUMN_PET_GENDER);
+
+            while (cursor.moveToNext()) {
+
+                int currentID = cursor.getInt(idColumnIndex);
+                String currentName = cursor.getString(nameColumnIndex);
+                int currentWeight = cursor.getInt(weightCoulmnIndex);
+                String  currentBreed = cursor.getString(breedCoulmnIndex);
+                int currentGender = cursor.getInt(genderColumnIndex);
+
+                displayView.append(("\n" + currentID + " - " +
+                        currentName + " - " +
+                        currentBreed + " - " +
+                        currentGender + " - " +
+                        currentWeight));
+            }
         } finally {
-            // Always close the cursor when you're done reading from it. This releases all its
-            // resources and makes it invalid.
+
             cursor.close();
         }
     }
@@ -83,6 +125,7 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetsContract.PetEntry.COLUMN_PET_GENDER, PetsContract.PetEntry.GENDER_MALE);
         values.put(PetsContract.PetEntry.COLUMN_PET_WEIGHT,1);
       long newRowId =  db.insert(TABLE_NAME,null,values);
+        Log.v("CatalogActivity","pet added" +newRowId );
 
     }
 
@@ -100,8 +143,8 @@ public class CatalogActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
-               insertPet();
-               displayDatabaseInfo();
+                    insertPet();
+                    displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
