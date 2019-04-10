@@ -19,6 +19,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -35,6 +36,7 @@ import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_BRE
 import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_GENDER;
 import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_NAME;
 import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_WEIGHT;
+import static com.example.android.pets.data.PetsContract.PetEntry.CONTENT_URI;
 import static com.example.android.pets.data.PetsContract.PetEntry.TABLE_NAME;
 import static com.example.android.pets.data.PetsContract.PetEntry._ID;
 
@@ -67,21 +69,11 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        PetDbHelper mDbHelper = new PetDbHelper(this);
 
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
         String[] projection = {_ID,COLUMN_PET_NAME,COLUMN_PET_BREED,COLUMN_PET_GENDER,COLUMN_PET_WEIGHT
         };
-        Cursor cursor = db.query(TABLE_NAME,
-                projection,
-                null,
-                null,
-                null,
-                null,null);
-        TextView displayView = (TextView) findViewById(R.id.text_view_pet);
+       Cursor cursor = getContentResolver().query(CONTENT_URI,projection,null,null,null);
+        TextView displayView =  findViewById(R.id.text_view_pet);
 
         try {
 
@@ -124,8 +116,8 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetsContract.PetEntry.COLUMN_PET_BREED,"Terrier");
         values.put(PetsContract.PetEntry.COLUMN_PET_GENDER, PetsContract.PetEntry.GENDER_MALE);
         values.put(PetsContract.PetEntry.COLUMN_PET_WEIGHT,1);
-      long newRowId =  db.insert(TABLE_NAME,null,values);
-        Log.v("CatalogActivity","pet added" +newRowId );
+      Uri insertUri =  getContentResolver().insert(CONTENT_URI,values);
+        Log.v("CatalogActivity","pet added" +insertUri );
 
     }
 
