@@ -73,10 +73,10 @@ public class CatalogActivity extends AppCompatActivity {
 
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
-        String[] project = {_ID,COLUMN_PET_NAME,COLUMN_PET_BREED,COLUMN_PET_GENDER,COLUMN_PET_WEIGHT
+        String[] projection = {_ID,COLUMN_PET_NAME,COLUMN_PET_BREED,COLUMN_PET_GENDER,COLUMN_PET_WEIGHT
         };
         Cursor cursor = db.query(TABLE_NAME,
-                project,
+                projection,
                 null,
                 null,
                 null,
