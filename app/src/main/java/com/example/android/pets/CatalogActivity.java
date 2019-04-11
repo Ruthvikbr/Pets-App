@@ -27,8 +27,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.android.pets.data.PetCursorAdapter;
 import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetsContract;
 
@@ -73,41 +75,13 @@ public class CatalogActivity extends AppCompatActivity {
         String[] projection = {_ID,COLUMN_PET_NAME,COLUMN_PET_BREED,COLUMN_PET_GENDER,COLUMN_PET_WEIGHT
         };
        Cursor cursor = getContentResolver().query(CONTENT_URI,projection,null,null,null);
-        TextView displayView =  findViewById(R.id.text_view_pet);
+        ListView petListView = (ListView) findViewById(R.id.list);
+        PetCursorAdapter adapter = new PetCursorAdapter(this, cursor);
+        petListView.setAdapter(adapter);
+        View emptyView = findViewById(R.id.empty_view);
+        petListView.setEmptyView(emptyView);
 
-        try {
 
-            displayView.setText("The pets table contains " + cursor.getCount() + " pets.\n\n");
-            displayView.append(PetsContract.PetEntry._ID + " - " +
-                    PetsContract.PetEntry.COLUMN_PET_NAME + " - " +
-                    PetsContract.PetEntry.COLUMN_PET_BREED + " - " +
-                    PetsContract.PetEntry.COLUMN_PET_GENDER + " - " +
-                    PetsContract.PetEntry.COLUMN_PET_WEIGHT + "\n");
-
-            int idColumnIndex = cursor.getColumnIndex(PetsContract.PetEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(PetsContract.PetEntry.COLUMN_PET_NAME);
-            int weightCoulmnIndex = cursor.getColumnIndex(COLUMN_PET_WEIGHT);
-            int breedCoulmnIndex = cursor.getColumnIndex(COLUMN_PET_BREED);
-            int genderColumnIndex = cursor.getColumnIndex(COLUMN_PET_GENDER);
-
-            while (cursor.moveToNext()) {
-
-                int currentID = cursor.getInt(idColumnIndex);
-                String currentName = cursor.getString(nameColumnIndex);
-                int currentWeight = cursor.getInt(weightCoulmnIndex);
-                String  currentBreed = cursor.getString(breedCoulmnIndex);
-                int currentGender = cursor.getInt(genderColumnIndex);
-
-                displayView.append(("\n" + currentID + " - " +
-                        currentName + " - " +
-                        currentBreed + " - " +
-                        currentGender + " - " +
-                        currentWeight));
-            }
-        } finally {
-
-            cursor.close();
-        }
     }
     private void  insertPet(){
 
