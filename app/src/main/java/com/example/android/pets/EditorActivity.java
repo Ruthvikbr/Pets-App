@@ -134,7 +134,6 @@ public class EditorActivity extends AppCompatActivity {
 
         Uri newUri = getContentResolver().insert(PetsContract.PetEntry.CONTENT_URI, values);
 
-        // Show a toast message depending on whether or not the insertion was successful
         if (newUri == null) {
             // If the new content URI is null, then there was an error with insertion.
             Toast.makeText(this, getString(R.string.editor_insert_pet_failed),

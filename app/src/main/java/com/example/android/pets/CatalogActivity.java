@@ -110,7 +110,7 @@ public class CatalogActivity extends AppCompatActivity {
         }
     }
     private void  insertPet(){
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
         ContentValues values = new ContentValues();
         values.put(PetsContract.PetEntry.COLUMN_PET_NAME,"toto");
         values.put(PetsContract.PetEntry.COLUMN_PET_BREED,"Terrier");
@@ -140,7 +140,7 @@ public class CatalogActivity extends AppCompatActivity {
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
-                // Do nothing for now
+
                 return true;
         }
         return super.onOptionsItemSelected(item);
