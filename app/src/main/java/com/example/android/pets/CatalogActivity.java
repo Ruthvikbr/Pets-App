@@ -15,8 +15,12 @@
  */
 package com.example.android.pets;
 
+import android.app.LoaderManager;
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -27,6 +31,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -39,19 +44,19 @@ import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_GEN
 import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_NAME;
 import static com.example.android.pets.data.PetsContract.PetEntry.COLUMN_PET_WEIGHT;
 import static com.example.android.pets.data.PetsContract.PetEntry.CONTENT_URI;
-import static com.example.android.pets.data.PetsContract.PetEntry.TABLE_NAME;
+
 import static com.example.android.pets.data.PetsContract.PetEntry._ID;
 
 
-public class CatalogActivity extends AppCompatActivity {
-    private PetDbHelper mDbHelper ;
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    private static final int PET_LOADER =0;
+    PetCursorAdapter mCursorAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_catalog);
-
-        // Setup FAB to open EditorActivity
         FloatingActionButton fab =  findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,29 +65,34 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-        mDbHelper = new PetDbHelper(this);
-        displayDatabaseInfo();
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        displayDatabaseInfo();
-    }
+        ListView petListView =  findViewById(R.id.list);
 
-    private void displayDatabaseInfo() {
-
-        String[] projection = {_ID,COLUMN_PET_NAME,COLUMN_PET_BREED,COLUMN_PET_GENDER,COLUMN_PET_WEIGHT
-        };
-       Cursor cursor = getContentResolver().query(CONTENT_URI,projection,null,null,null);
-        ListView petListView = (ListView) findViewById(R.id.list);
-        PetCursorAdapter adapter = new PetCursorAdapter(this, cursor);
-        petListView.setAdapter(adapter);
         View emptyView = findViewById(R.id.empty_view);
         petListView.setEmptyView(emptyView);
 
+        mCursorAdapter = new PetCursorAdapter(this, null);
+        petListView.setAdapter(mCursorAdapter);
+
+        petListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Intent intent = new Intent(CatalogActivity.this,EditorActivity.class);
+
+                Uri currentPetUri = ContentUris.withAppendedId(CONTENT_URI,id);
+                intent.setData(currentPetUri);
+                startActivity(intent);
+
+            }
+        });
+
+        getLoaderManager().initLoader(PET_LOADER,null,this);
 
     }
+
+
+
+
     private void  insertPet(){
 
         ContentValues values = new ContentValues();
@@ -110,13 +120,39 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                     insertPet();
-                    displayDatabaseInfo();
+
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
-
+                    deleteAllPets();
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    /**
+     * Helper method to delete all pets in the database.
+     */
+    private void deleteAllPets() {
+        int rowsDeleted = getContentResolver().delete(PetsContract.PetEntry.CONTENT_URI, null, null);
+        Log.v("CatalogActivity", rowsDeleted + " rows deleted from pet database");
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        String[] projection = {_ID,COLUMN_PET_NAME,COLUMN_PET_BREED
+        };
+
+        return new CursorLoader(this,CONTENT_URI,projection,null,null,null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+            mCursorAdapter.swapCursor(data);
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mCursorAdapter.swapCursor(null);
     }
 }
